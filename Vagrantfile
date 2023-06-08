@@ -3,7 +3,7 @@
 MASTER_IP       = "192.168.0.50"
 NODE_IP         = "192.168.0.51"
 JENKINS_IP      = "192.168.0.52"
-
+NEXUS_IP        = "192.168.0.53"
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
 # configures the configuration version (we support older styles for
@@ -16,6 +16,7 @@ Vagrant.configure("2") do |config|
     { :name => "master",  :ip => MASTER_IP,  :cpus => 2, :memory => 4096, :box => "ubuntu/focal64" },
     { :name => "workernode", :ip => NODE_IP, :cpus => 2, :memory => 4096, :box => "ubuntu/focal64" },
     { :name => "jenkins", :ip => JENKINS_IP, :cpus => 2, :memory => 4096, :box => "ubuntu/focal64" },
+    { :name => "nexus", :ip => NEXUS_IP, :cpus => 2, :memory => 2048, :box => "aspyatkin/ubuntu-20.04-server" },
   ]
 
   boxes.each do |opts|
@@ -41,6 +42,9 @@ Vagrant.configure("2") do |config|
       end
       if box.vm.hostname == "jenkins" then ##TODO: create some regex to match rancher hostnames
         box.vm.provision "shell", path:"./install-jenkins.sh"
+      end
+      if box.vm.hostname == "nexus" then ##TODO: create some regex to match rancher hostnames
+        box.disksize.size = "30GB"
       end
 
     end
