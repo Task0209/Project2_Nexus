@@ -1,0 +1,33 @@
+pipeline{
+    agent any
+    stages{
+        stage('Step 1: Clone Repository')
+        {
+            steps {
+                git credentialsId: 'github', url: 'https://github.com/Task0209/chillapp.git'
+             }
+        }
+        
+     stage('Step 2: Build the Docker Image'){
+             steps {
+               script {
+                   env.BUILD_NUMBER = input message: 'Please enter the BuildNumber/Version', parameters: [string(defaultValue: '', description: '', name: 'Build_Number')] ,  ok : 'Continue' 
+              }
+              echo "Build_Number: ${env.BUILD_NUMBER}"
+              sh "docker build -t 192.168.0.53:8082/chatgpt-ai:${env.BUILD_NUMBER} . "
+             }
+    
+        }    
+     
+      stage('Step 3: Pushing Docker Image to Nexus Repository') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus', passwordVariable: 'NexusPass', usernameVariable: 'NexusUser')]) {
+                        sh "echo ${NexusPass} | docker login -u ${NexusUser} --password-stdin 192.168.0.53:8082"
+                        sh "docker push 192.168.0.53:8082/chatgpt-ai:${env.BUILD_NUMBER}"
+                      }
+                  }
+             }
+   
+   
+    }
+}
