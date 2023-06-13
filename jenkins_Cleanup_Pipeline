@@ -1,0 +1,45 @@
+pipeline{
+    agent any
+    stages{
+        stage('Step 1: Download the Manifest file')
+        {
+            steps {
+                sh 'cp -pv /var/lib/jenkins/workspace/Deploy_Job2/deploy.yaml .'
+                sh 'cp -pv /var/lib/jenkins/workspace/Deploy_Job2/service.yaml .'
+                sh 'ls -l'
+                sh 'chmod u+x ./deploy.yaml'
+                sh 'chmod u+x ./service.yaml'
+             }
+        }
+   
+        stage ('Stage 2: Install & Download Kubectl'){
+             steps {
+                   sh 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'  
+                    sh 'chmod u+x ./kubectl'
+                  }
+            
+             }
+   
+         stage ('Stage 3: Unload apps to K8s Cluster'){
+             steps {
+                 script {
+                      withKubeConfig(credentialsId: 'kkk', serverUrl: 'https://192.168.0.50:6443') {
+                                  sh './kubectl delete -f deploy.yaml'
+                                  sh './kubectl delete -f service.yaml'
+                                 }
+                  }
+             }
+           }
+        stage('Stage 4: Delete the Manifest Files') {
+            steps{
+                sh 'rm -rf deploy.yaml'
+                sh 'rm -rf service.yaml'
+                sh 'ls -l'
+                sh 'rm -rf /var/lib/jenkins/workspace/Deploy_Job2/deploy.yaml'
+                sh 'rm -rf /var/lib/jenkins/workspace/Deploy_Job2/service.yaml'
+                sh 'ls -l'
+            }
+        }
+  
+    }
+}
